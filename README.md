@@ -2,6 +2,8 @@
 
 Note: this project includes vibe-coded elements produced with Codex and Claude.
 
+This forms the backbone of orchestration in the Scryer system, but it can also be used independently. It's backed by SQLite and presents a functioning API.
+
 Orchestration backbone for Scryer.
 
 ## What This Is
