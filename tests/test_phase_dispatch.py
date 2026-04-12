@@ -19,6 +19,7 @@ async def test_launch_phase_steps_dispatches_all_pending_steps(monkeypatch):
     )
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-phase-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -58,6 +59,7 @@ async def test_launch_phase_steps_dispatches_only_first_pending_step_for_exec_se
     )
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-phase-serial-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -88,6 +90,7 @@ async def test_advance_workflow_requires_pre_phase_hook(monkeypatch):
     phase = PhaseStatus(number=0, status="pending", steps=[StepStatus(name="alpha", status="pending")])
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-phase-contract-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -125,6 +128,7 @@ async def test_post_phase_done_restarts_exec_count_iteration_until_max_times(mon
     )
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-phase-repeat-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",

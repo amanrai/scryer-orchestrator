@@ -18,6 +18,7 @@ from new_orchestrator.app.services import processes
 async def test_step_done_launches_post_step_without_killing_session(monkeypatch):
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-notify-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -89,6 +90,7 @@ async def test_step_done_launches_post_step_without_killing_session(monkeypatch)
 async def test_kill_step_dispatches_user_kill_hook_without_direct_failure(monkeypatch):
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-kill-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -141,6 +143,7 @@ async def test_check_timeouts_dispatches_timeout_hook_without_direct_failure(mon
     )
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-timeout-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -194,6 +197,7 @@ async def test_check_timeouts_dispatches_timeout_hook_without_direct_failure(mon
 async def test_step_pass_is_stored_as_pass_status(monkeypatch):
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-pass-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",
@@ -247,6 +251,7 @@ async def test_step_pass_is_stored_as_pass_status(monkeypatch):
 async def test_workflow_scoped_pass_fails_workflow(monkeypatch):
     instance = WorkflowInstanceRead(
         workflow_uuid="wf-invalid-pass-123",
+        workflow_def_id="workflow-def-dummy",
         workflow_name="dummy workflow",
         project_name="scryer testing",
         project_base_repo_path_relative_to_common_volume="",

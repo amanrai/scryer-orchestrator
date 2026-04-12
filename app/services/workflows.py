@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 
 from ..config import settings
@@ -16,8 +17,20 @@ def _workflow_file(name: str) -> Path:
     return _root() / f"{name}.json"
 
 
+def _workflow_file_by_id(workflow_def_id: str) -> Path | None:
+    for path in sorted(_root().glob("*.json")):
+        data = json.loads(path.read_text())
+        if data.get("workflow_def_id") == workflow_def_id:
+            return path
+    return None
+
+
 def _read_workflow(path: Path) -> WorkflowDetail:
     data = json.loads(path.read_text())
+    if not data.get("workflow_def_id"):
+        data["workflow_def_id"] = str(uuid.uuid4())
+        path.write_text(json.dumps(data, indent=2) + "\n")
+        git.add_and_commit([path.name], f"Backfill workflow_def_id: {data['name']}", cwd=_root())
     data.setdefault("hooks", {})
     return WorkflowDetail(**data)
 
@@ -29,6 +42,7 @@ def list_workflows() -> list[WorkflowSummary]:
         data = json.loads(path.read_text())
         results.append(
             WorkflowSummary(
+                workflow_def_id=data["workflow_def_id"],
                 name=data["name"],
                 description=data.get("description", ""),
             )
@@ -43,6 +57,13 @@ def get_workflow(name: str) -> WorkflowDetail:
     return _read_workflow(path)
 
 
+def get_workflow_by_id(workflow_def_id: str) -> WorkflowDetail:
+    path = _workflow_file_by_id(workflow_def_id)
+    if path is None:
+        raise WorkflowNotFoundError(workflow_def_id)
+    return _read_workflow(path)
+
+
 def create_workflow(
     name: str,
     description: str = "",
@@ -53,6 +74,7 @@ def create_workflow(
     if path.exists():
         raise WorkflowAlreadyExistsError(name)
     data = {
+        "workflow_def_id": str(uuid.uuid4()),
         "name": name,
         "description": description,
         "phases": [phase.model_dump() for phase in (phases or [])],
@@ -81,4 +103,25 @@ def update_workflow(
         data["hooks"] = hooks.model_dump()
     path.write_text(json.dumps(data, indent=2) + "\n")
     git.add_and_commit([path.name], f"Update workflow: {name}", cwd=_root())
+    return _read_workflow(path)
+
+
+def update_workflow_by_id(
+    workflow_def_id: str,
+    description: str | None = None,
+    phases: list[WorkflowPhaseDefinition] | None = None,
+    hooks: WorkflowHooks | None = None,
+) -> WorkflowDetail:
+    path = _workflow_file_by_id(workflow_def_id)
+    if path is None:
+        raise WorkflowNotFoundError(workflow_def_id)
+    data = json.loads(path.read_text())
+    if description is not None:
+        data["description"] = description
+    if phases is not None:
+        data["phases"] = [phase.model_dump() for phase in phases]
+    if hooks is not None:
+        data["hooks"] = hooks.model_dump()
+    path.write_text(json.dumps(data, indent=2) + "\n")
+    git.add_and_commit([path.name], f"Update workflow by id: {data['name']}", cwd=_root())
     return _read_workflow(path)

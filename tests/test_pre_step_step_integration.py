@@ -53,7 +53,7 @@ def _write_state(tmp_path: Path, hook_event_name: str) -> dict:
 def test_real_pre_step_outputs_are_consumed_by_real_step(tmp_path, monkeypatch, pre_step_module, step_module, resolver_module):
     common_volume = tmp_path / "common-volume"
     session_root = common_volume / "agent-sessions" / "wf-integration-123"
-    templates_root = common_volume / "templates"
+    templates_root = common_volume / "hooks" / "templates"
     (session_root / "interactor").mkdir(parents=True)
     (session_root / "interactor" / "interactor.sh").write_text("#!/usr/bin/env bash\n", encoding="utf-8")
     (session_root / ".agents" / "skills" / "dummy").mkdir(parents=True)

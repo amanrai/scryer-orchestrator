@@ -11,6 +11,7 @@ from ..schemas.process import (
     WorkflowPhaseInsert,
     WorkflowHookMap,
     WorkflowInstanceCreate,
+    WorkflowInstanceCreateById,
     WorkflowInstanceRead,
     WorkflowInstanceSummary,
     WorkflowStepConfigUpdate,
@@ -23,7 +24,7 @@ from .execution import kill_tmux_session
 from .hooks import fire_hook
 from .messaging import get_redis, list_pending
 from .runtime import workflow_log_path
-from .workflows import get_workflow
+from .workflows import get_workflow, get_workflow_by_id
 
 TERMINAL_WORKFLOW_STATUSES = {"completed", "failed"}
 LIVE_STEP_STATUSES = {"dispatched", "running", "rfi"}
@@ -69,6 +70,7 @@ async def list_workflow_instances() -> list[WorkflowInstanceSummary]:
         results.append(
             WorkflowInstanceSummary(
                 workflow_uuid=instance.workflow_uuid,
+                workflow_def_id=instance.workflow_def_id,
                 task_id=instance.task_id,
                 workflow_name=instance.workflow_name,
                 project_name=instance.project_name,
@@ -341,11 +343,51 @@ async def _advance_workflow(instance: WorkflowInstanceRead) -> None:
 
 async def create_workflow_instance(body: WorkflowInstanceCreate) -> WorkflowInstanceRead:
     workflow = get_workflow(body.workflow_name)
+    return await _create_workflow_instance_from_definition(
+        workflow=workflow,
+        task_id=body.task_id,
+        project_name=body.project_name,
+        project_base_repo_path_relative_to_common_volume=body.project_base_repo_path_relative_to_common_volume,
+        project_identities_associated=body.project_identities_associated,
+        project_environment_variables_associated=body.project_environment_variables_associated,
+        additional_caller_info=body.additional_caller_info,
+        step_configs=body.step_configs,
+        post_step_on_fail=body.post_step_on_fail,
+    )
+
+
+async def create_workflow_instance_by_id(body: WorkflowInstanceCreateById) -> WorkflowInstanceRead:
+    workflow = get_workflow_by_id(body.workflow_def_id)
+    return await _create_workflow_instance_from_definition(
+        workflow=workflow,
+        task_id=body.task_id,
+        project_name=body.project_name,
+        project_base_repo_path_relative_to_common_volume=body.project_base_repo_path_relative_to_common_volume,
+        project_identities_associated=body.project_identities_associated,
+        project_environment_variables_associated=body.project_environment_variables_associated,
+        additional_caller_info=body.additional_caller_info,
+        step_configs=body.step_configs,
+        post_step_on_fail=body.post_step_on_fail,
+    )
+
+
+async def _create_workflow_instance_from_definition(
+    *,
+    workflow,
+    task_id: str | None,
+    project_name: str,
+    project_base_repo_path_relative_to_common_volume: str,
+    project_identities_associated: list[str],
+    project_environment_variables_associated: list[str],
+    additional_caller_info: dict,
+    step_configs: dict[int, dict[str, dict]],
+    post_step_on_fail: bool,
+) -> WorkflowInstanceRead:
     workflow_uuid = str(uuid.uuid4())
     now = _now()
     phases = []
     for phase_number, phase_definition in enumerate(workflow.phases):
-        configured = body.step_configs.get(phase_number, {})
+        configured = step_configs.get(phase_number, {})
         phases.append(
             PhaseStatus(
                 number=phase_number,
@@ -357,20 +399,21 @@ async def create_workflow_instance(body: WorkflowInstanceCreate) -> WorkflowInst
         )
     instance = WorkflowInstanceRead(
         workflow_uuid=workflow_uuid,
-        task_id=body.task_id,
+        workflow_def_id=workflow.workflow_def_id,
+        task_id=task_id,
         workflow_name=workflow.name,
         workflow_definition=workflow.model_dump(),
-        project_name=body.project_name,
-        project_base_repo_path_relative_to_common_volume=body.project_base_repo_path_relative_to_common_volume,
-        project_identities_associated=body.project_identities_associated,
-        project_environment_variables_associated=body.project_environment_variables_associated,
+        project_name=project_name,
+        project_base_repo_path_relative_to_common_volume=project_base_repo_path_relative_to_common_volume,
+        project_identities_associated=project_identities_associated,
+        project_environment_variables_associated=project_environment_variables_associated,
         current_session_name=None,
-        additional_caller_info=body.additional_caller_info,
+        additional_caller_info=additional_caller_info,
         status="pending",
         current_phase=0,
         phases=phases,
         hooks=_copy_workflow_hooks(workflow.model_dump()),
-        post_step_on_fail=body.post_step_on_fail,
+        post_step_on_fail=post_step_on_fail,
         created_at=now,
         updated_at=now,
     )

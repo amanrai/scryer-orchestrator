@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     tmuxer_url: str = "http://host.docker.internal:5678"
     interaction_service_url: str = "http://interaction-service:8200"
     secrets_service_url: str = "http://host.docker.internal:8211"
+    pm_system_url: str = "http://host.docker.internal:8000"
 
     model_config = SettingsConfigDict(
         extra="ignore",

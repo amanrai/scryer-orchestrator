@@ -33,6 +33,7 @@ class WorkflowHooks(BaseModel):
 
 
 class WorkflowSummary(BaseModel):
+    workflow_def_id: str
     name: str
     description: str = ""
 
@@ -62,6 +63,7 @@ class WorkflowPhaseDefinition(BaseModel):
 
 
 class WorkflowDetail(BaseModel):
+    workflow_def_id: str
     name: str
     description: str = ""
     phases: list[WorkflowPhaseDefinition] = Field(default_factory=list)

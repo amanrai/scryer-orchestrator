@@ -58,6 +58,7 @@ def build_state_dict(
         tmuxer_url=settings.tmuxer_url,
         interaction_service_url=settings.interaction_service_url,
         secrets_service_url=settings.secrets_service_url,
+        pm_system_url=settings.pm_system_url,
         current_session_name=current_session_name,
         project_identities_associated=project_identities_associated,
         project_environment_variables_associated=project_environment_variables_associated,

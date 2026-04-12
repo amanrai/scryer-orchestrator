@@ -4,6 +4,7 @@ from fastapi.responses import PlainTextResponse
 from ...schemas.process import (
     NotificationEvent,
     WorkflowInstanceCreate,
+    WorkflowInstanceCreateById,
     WorkflowInstanceRead,
     WorkflowInstanceSummary,
     WorkflowPhaseInsert,
@@ -17,9 +18,15 @@ from ...services import processes
 router = APIRouter(prefix="/processes", tags=["processes"])
 
 
-@router.post("", response_model=WorkflowInstanceRead, status_code=201)
-async def create_process(body: WorkflowInstanceCreate):
-    instance = await processes.create_workflow_instance(body)
+# @router.post("", response_model=WorkflowInstanceRead, status_code=201)
+# async def create_process(body: WorkflowInstanceCreate):
+#     instance = await processes.create_workflow_instance(body)
+#     return await processes.start_workflow_instance(instance.workflow_uuid)
+
+
+@router.post("/by-id", response_model=WorkflowInstanceRead, status_code=201)
+async def create_process_by_id(body: WorkflowInstanceCreateById):
+    instance = await processes.create_workflow_instance_by_id(body)
     return await processes.start_workflow_instance(instance.workflow_uuid)
 
 

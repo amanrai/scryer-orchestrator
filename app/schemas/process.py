@@ -80,6 +80,9 @@ class WorkflowStateDict(BaseModel):
     secrets_service_url: str = Field(
         description="Resolved secrets-service base URL for the current runtime environment."
     )
+    pm_system_url: str = Field(
+        description="Resolved PM-system base URL for the current runtime environment."
+    )
     current_session_name: str | None = None
     project_identities_associated: list[str] = Field(default_factory=list)
     project_environment_variables_associated: list[str] = Field(default_factory=list)
@@ -193,8 +196,21 @@ class WorkflowInstanceCreate(BaseModel):
     post_step_on_fail: bool = False
 
 
+class WorkflowInstanceCreateById(BaseModel):
+    task_id: str | None = None
+    workflow_def_id: str
+    project_name: str
+    project_base_repo_path_relative_to_common_volume: str
+    project_identities_associated: list[str] = Field(default_factory=list)
+    project_environment_variables_associated: list[str] = Field(default_factory=list)
+    additional_caller_info: dict = Field(default_factory=dict)
+    step_configs: dict[int, dict[str, dict]] = Field(default_factory=dict)
+    post_step_on_fail: bool = False
+
+
 class WorkflowInstanceRead(BaseModel):
     workflow_uuid: str
+    workflow_def_id: str
     task_id: str | None = None
     workflow_name: str
     workflow_definition: dict = Field(default_factory=dict)
@@ -217,6 +233,7 @@ class WorkflowInstanceRead(BaseModel):
 
 class WorkflowInstanceSummary(BaseModel):
     workflow_uuid: str
+    workflow_def_id: str
     task_id: str | None = None
     workflow_name: str
     project_name: str
